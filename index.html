@@ -41,6 +41,19 @@
   header .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
   header h1 { font-size: 15px; margin: 0; letter-spacing: 0.5px; font-weight: 600; }
   header .model { color: var(--dim); font-size: 11px; }
+  header .spacer { flex: 1; }
+  header .user-email { color: var(--dim); font-size: 11px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  header .logout-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  header .logout-btn:active { transform: scale(0.96); }
 
   #chat {
     flex: 1;
@@ -124,6 +137,9 @@
     <span class="dot"></span>
     <h1>chat</h1>
     <span class="model">connecté à ton API</span>
+    <span class="spacer"></span>
+    <span class="user-email" id="user-email"></span>
+    <button class="logout-btn" id="logout-btn" type="button">Déconnexion</button>
   </header>
 
   <div id="chat"></div>
@@ -133,13 +149,43 @@
     <button id="send" type="submit" aria-label="Envoyer">➤</button>
   </form>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script>
   const chatEl = document.getElementById('chat');
   const form = document.getElementById('form');
   const input = document.getElementById('input');
   const sendBtn = document.getElementById('send');
+  const userEmailEl = document.getElementById('user-email');
+  const logoutBtn = document.getElementById('logout-btn');
 
   let history = [];
+  let accessToken = null;
+
+  // --- Garde d'authentification : redirige vers login.html si pas connecté ---
+  (async function checkAuth() {
+    const { data } = await supabaseClient.auth.getSession();
+    if (!data.session) {
+      window.location.href = 'login.html';
+      return;
+    }
+    accessToken = data.session.access_token;
+    userEmailEl.textContent = data.session.user.email || '';
+  })();
+
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (!session) {
+      window.location.href = 'login.html';
+    } else {
+      accessToken = session.access_token;
+      userEmailEl.textContent = session.user.email || '';
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'login.html';
+  });
 
   // Corrige la hauteur réelle de la fenêtre sur mobile (barre d'adresse qui
   // apparaît/disparaît, clavier virtuel) en utilisant l'API visualViewport.
@@ -208,7 +254,10 @@
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ messages: history }),
       });
       const data = await res.json();
