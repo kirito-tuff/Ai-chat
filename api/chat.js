@@ -4,11 +4,32 @@
  * Le fetch natif de Node est utilisé (pas besoin de node-fetch).
  */
 
+import { createClient } from '@supabase/supabase-js';
+
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'poolside/laguna-xs-2.1:free';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée.' });
+  }
+
+  // --- Vérification de l'authentification ---
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Non authentifié.' });
+  }
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    return res.status(500).json({ error: 'SUPABASE_URL / SUPABASE_ANON_KEY manquantes côté serveur.' });
+  }
+
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+  const { data: userData, error: userError } = await supabase.auth.getUser(token);
+
+  if (userError || !userData?.user) {
+    return res.status(401).json({ error: 'Session invalide ou expirée.' });
   }
 
   const { messages } = req.body || {};
