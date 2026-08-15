@@ -1,5 +1,8 @@
 {
   "name": "vercel-ai-chat",
   "version": "1.0.0",
-  "description": "Site de chat IA (Vercel) connecté à OpenRouter"
+  "description": "Site de chat IA (Vercel) connecté à OpenRouter",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  }
 }
