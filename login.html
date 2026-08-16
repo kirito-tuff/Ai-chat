@@ -3,84 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0d0f12">
-<title>Connexion — Chat IA</title>
+<meta name="theme-color" content="#131a28">
+<title>Connexion — kiritoAI</title>
 <style>
   :root {
-    --bg: #0d0f12;
-    --panel: #15181d;
-    --border: #262b33;
-    --text: #e6e8eb;
-    --dim: #7d8590;
-    --accent: #5fd3a3;
-    --danger: #e5666b;
+    --bg: #131a28;
+    --bg-glow: #1b2740;
+    --panel: #1c2436;
+    --border: #333d56;
+    --border-soft: #2a3348;
+    --text: #eef0f4;
+    --dim: #96a0b0;
+    --accent: #5f8ce8;
+    --accent-dim: #3a5aa8;
+    --input-bg: #202a40;
+    --danger: #e8746f;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
+    background:
+      radial-gradient(circle at 50% -10%, var(--bg-glow) 0%, transparent 55%),
+      var(--bg);
     color: var(--text);
-    font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
   }
+
   .card {
     width: 100%;
     max-width: 380px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 22px;
   }
-  .brand { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 6px; }
-  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-  .brand h1 { font-size: 16px; margin: 0; letter-spacing: 0.5px; font-weight: 600; }
 
-  .tabs { display: flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  /* --- Mascotte : élément de marque, animée --- */
+  .brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .mascot-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    width: 64px;
+    height: 64px;
+  }
+  .brand h1 {
+    font-size: 17px;
+    margin: 0;
+    letter-spacing: 0.2px;
+    font-weight: 700;
+  }
+  .brand p {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--dim);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 4px;
+  }
   .tabs button {
     flex: 1;
-    background: var(--panel);
+    background: transparent;
     color: var(--dim);
     border: none;
-    padding: 12px;
+    border-radius: 10px;
+    padding: 10px;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    transition: background 0.15s ease, color 0.15s ease;
+    position: relative;
+    overflow: hidden;
   }
-  .tabs button.active { background: var(--accent); color: #0d0f12; }
+  .tabs button.active { background: var(--accent); color: #0b0e16; }
 
   form { display: flex; flex-direction: column; gap: 10px; }
+
+  .field {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .field svg {
+    position: absolute;
+    left: 14px;
+    width: 17px;
+    height: 17px;
+    color: var(--dim);
+    pointer-events: none;
+  }
   input {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
     color: var(--text);
-    padding: 13px 14px;
+    padding: 13px 14px 13px 40px;
     font-family: inherit;
     font-size: 16px;
+    transition: border-color 0.15s ease;
   }
+  input::placeholder { color: var(--dim); }
   input:focus { outline: none; border-color: var(--accent); }
 
   .primary-btn {
     background: var(--accent);
-    color: #0d0f12;
+    color: #0b0e16;
     border: none;
-    border-radius: 10px;
-    padding: 13px;
+    border-radius: 14px;
+    padding: 14px;
     font-family: inherit;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
   }
   .primary-btn:active { transform: scale(0.98); }
   .primary-btn:disabled { opacity: 0.5; }
 
-  .divider { display: flex; align-items: center; gap: 10px; color: var(--dim); font-size: 11px; }
-  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.35;
+    transform: scale(0);
+    animation: ripple-anim 0.55s ease-out;
+    pointer-events: none;
+  }
+  @keyframes ripple-anim {
+    to { transform: scale(2.6); opacity: 0; }
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border-soft); }
 
   .oauth-list { display: flex; flex-direction: column; gap: 8px; }
   .oauth-btn {
@@ -89,18 +170,21 @@
     justify-content: center;
     gap: 10px;
     background: var(--panel);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-soft);
     color: var(--text);
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 12px;
     font-family: inherit;
     font-size: 14px;
     font-weight: 600;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    position: relative;
+    overflow: hidden;
   }
-  .oauth-btn:active { transform: scale(0.98); }
+  .oauth-btn:active { transform: scale(0.98); background: var(--input-bg); }
   .oauth-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-  .msg { font-size: 12.5px; text-align: center; min-height: 16px; line-height: 1.4; }
+  .msg { font-size: 12.5px; text-align: center; min-height: 16px; line-height: 1.4; padding: 0 4px; }
   .msg.error { color: var(--danger); }
   .msg.success { color: var(--accent); }
 </style>
@@ -108,7 +192,11 @@
 <body>
 
   <div class="card">
-    <div class="brand"><span class="dot"></span><h1>chat</h1></div>
+    <div class="brand">
+      <canvas class="mascot-canvas" id="mascot" width="16" height="16"></canvas>
+      <h1>kiritoAI</h1>
+      <p>Connecte-toi pour commencer à discuter</p>
+    </div>
 
     <div class="tabs">
       <button id="tab-signin" class="active" type="button">Connexion</button>
@@ -116,8 +204,21 @@
     </div>
 
     <form id="auth-form">
-      <input id="email" type="email" placeholder="Email" autocomplete="email" required>
-      <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password" required minlength="6">
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16v16H4z" opacity="0"></path>
+          <path d="M22 6c0-1.1-.9-2-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6Z"></path>
+          <path d="m2 7 10 6 10-6"></path>
+        </svg>
+        <input id="email" type="email" placeholder="Email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+        </svg>
+        <input id="password" type="password" placeholder="Mot de passe" autocomplete="current-password" required minlength="6">
+      </div>
       <button class="primary-btn" id="submit-btn" type="submit">Se connecter</button>
     </form>
 
@@ -144,6 +245,88 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script>
+  // ---------------------------------------------------------------
+  // Mascotte kiritoAI — idle discret sur la page de connexion
+  // ---------------------------------------------------------------
+  (function () {
+    const canvas = document.getElementById('mascot');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+
+    const _ = null;
+    const B1 = '#4f7fe0', B2 = '#3a63c4', B3 = '#2a4a9e', W = '#e8f0ff', K = '#0d1220';
+
+    const STAND = [
+      [_,_,_,_,_,_,_,W,_,_,_,_,_,_,_,_],
+      [_,_,_,_,_,_,_,W,_,_,_,_,_,_,_,_],
+      [_,_,_,_,_,B1,B1,B1,B1,_,_,_,_,_,_,_],
+      [_,_,_,B1,B1,B1,B1,B1,B1,B1,_,_,_,_,_,_],
+      [_,_,B1,B1,B1,B1,B1,B1,B1,B1,B1,_,_,_,_,_],
+      [_,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,_,_,_,_],
+      [_,B1,B1,K,B1,B1,B1,B1,B1,K,B1,B1,_,_,_,_],
+      [B2,B1,B1,K,B1,B1,B1,B1,B1,K,B1,B1,B2,_,_,_],
+      [B2,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B1,B2,_,_,_],
+      [_,B2,B1,B1,B1,B1,B1,B1,B1,B1,B1,B2,_,_,_,_],
+      [_,B2,B2,B1,B1,B1,B1,B1,B1,B1,B2,B2,_,_,_,_],
+      [_,_,B2,B2,B2,B2,B2,B2,B2,B2,B2,_,_,_,_,_],
+      [_,_,B3,_,_,_,_,_,_,B3,_,_,_,_,_,_],
+      [_,_,B3,_,_,_,_,_,_,B3,_,_,_,_,_,_],
+      [_,B3,B3,_,_,_,_,_,_,B3,B3,_,_,_,_,_],
+      [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    ];
+
+    const EYES = [[3,6,7],[9,6,7]];
+
+    function draw(blinking) {
+      ctx.clearRect(0, 0, 16, 16);
+      for (let y = 0; y < STAND.length; y++) {
+        for (let x = 0; x < STAND[y].length; x++) {
+          const c = STAND[y][x];
+          if (c) { ctx.fillStyle = c; ctx.fillRect(x, y, 1, 1); }
+        }
+      }
+      if (blinking) {
+        EYES.forEach(([x, yTop, yBottom]) => {
+          ctx.fillStyle = B1; ctx.fillRect(x, yTop, 1, 1);
+          ctx.fillStyle = B3; ctx.fillRect(x, yBottom, 1, 1);
+        });
+      }
+    }
+
+    let blinking = false;
+    let nextBlink = 1200 + Math.random() * 1800;
+    let blinkTimer = 0;
+
+    function animate(time) {
+      if (!blinking && time > nextBlink) { blinking = true; blinkTimer = time; }
+      if (blinking && time - blinkTimer > 120) {
+        blinking = false;
+        nextBlink = time + 1800 + Math.random() * 2500;
+      }
+      draw(blinking);
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+  })();
+
+  // ---------------------------------------------------------------
+  // Effet "ripple" au clic, sur tous les boutons de la page
+  // ---------------------------------------------------------------
+  function attachRipple(btn) {
+    btn.addEventListener('pointerdown', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      btn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    });
+  }
+  document.querySelectorAll('.primary-btn, .oauth-btn, .tabs button').forEach(attachRipple);
+
   const tabSignin = document.getElementById('tab-signin');
   const tabSignup = document.getElementById('tab-signup');
   const submitBtn = document.getElementById('submit-btn');
