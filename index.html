@@ -16,6 +16,10 @@
     --user-bubble: #26314a;
     --input-bg: #202a40;
     --vh: 100dvh;
+    --glass-bg: rgba(32, 42, 64, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --glass-highlight: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(20px) saturate(180%);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -53,8 +57,22 @@
     font-family: inherit;
     font-size: 11px;
     font-weight: 600;
+    position: relative;
+    overflow: hidden;
   }
   header .logout-btn:active { transform: scale(0.96); }
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.35;
+    transform: scale(0);
+    animation: ripple-anim 0.55s ease-out;
+    pointer-events: none;
+  }
+  @keyframes ripple-anim {
+    to { transform: scale(2.6); opacity: 0; }
+  }
 
   #chat {
     flex: 1;
@@ -114,16 +132,18 @@
     width: 100%;
     margin: 0 auto;
     flex-shrink: 0;
-    background: var(--bg);
   }
   .input-pill {
-    background: var(--input-bg);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
     border-radius: 26px;
     padding: 14px 14px 10px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 6px 24px rgba(0,0,0,0.25);
   }
   textarea {
     width: 100%;
@@ -159,6 +179,8 @@
     align-items: center;
     justify-content: center;
     font-size: 15px;
+    position: relative;
+    overflow: hidden;
   }
   .icon-btn:active { transform: scale(0.94); }
   .icon-btn svg { width: 17px; height: 17px; }
@@ -176,6 +198,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
   }
   button#send:active { transform: scale(0.94); }
   button#send:disabled { opacity: 0.4; }
@@ -223,6 +247,24 @@
 
   let history = [];
   let accessToken = null;
+
+  // ---------------------------------------------------------------
+  // Effet "ripple" au clic, sur les boutons de l'interface
+  // ---------------------------------------------------------------
+  function attachRipple(btn) {
+    btn.addEventListener('pointerdown', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      btn.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    });
+  }
+  document.querySelectorAll('.icon-btn, #send, .logout-btn').forEach(attachRipple);
 
   // ---------------------------------------------------------------
   // Mascotte kiritoAI — animation "réflexion" (bulle de chargement)
